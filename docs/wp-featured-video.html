@@ -1,0 +1,930 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>API Documentation</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta><link rel="stylesheet" href="css/black-tie/jquery-ui-1.8.2.custom.css" type="text/css"></link><link rel="stylesheet" href="css/jquery.treeview.css" type="text/css"></link><link rel="stylesheet" href="css/default.css" type="text/css"></link><script type="text/javascript" src="js/jquery-1.4.2.min.js"></script><script type="text/javascript" src="js/jquery-ui-1.8.2.custom.min.js"></script><script type="text/javascript" src="js/jquery.cookie.js"></script><script type="text/javascript" src="js/jquery.treeview.js"></script></head><body><script type="text/javascript">
+          $(document).ready(function()
+          {
+            $(".filetree").treeview({
+              animated: "fast",
+              collapsed: true,
+              persist: "cookie"
+            });
+          });
+
+          function jq_escape(myid)
+          {
+            return '#' + myid.replace(/(#|\$|:|\.|\(|\))/g, '\\$1');
+          }
+
+          function applySearchHash()
+          {
+            hashes = document.location.hash.substr(1, document.location.hash.length);
+            if (hashes != "")
+            {
+              hashes = hashes.split('/');
+              $.each(hashes, function(index, hash)
+              {
+                node = $(jq_escape(hash));
+                switch (node[0].nodeName)
+                {
+                  case 'DIV':
+                    tabs = node.parents('.tabs');
+                    $(tabs[0]).tabs('select', '#' + hash)
+                    break;
+                  case 'A':
+                    window.scrollTo(0, node.offset().top);
+                    break;
+                }
+              });
+            }
+          }
+
+          jQuery(function()
+          {
+            jQuery(".tabs").tabs();
+            applySearchHash();
+          });
+        </script><div id="maincontainer"><div id="header"><h1>API Documentation<img src="images/top-stopper.png"></img></h1></div><ul xmlns="" id="menu">
+<li><a href="graph.html">Class diagram</a></li>
+<li><a href="markers.html">TODO / Markers</a></li>
+<li><a href="parse_markers.html">Errors</a></li>
+</ul>
+<div id="content_container"><div xmlns="" id="content">
+<h1>wp-featured-video.php</h1>
+<div class="file_menu">
+<a href="#classes">Classes</a> |</div>
+<div class="properties">
+<h1>Properties</h1>
+<label class="property-key">package</label><div class="property-value"></div>
+<label class="property-key">package</label><div class="property-value"></div>
+</div>
+<h2>Description</h2>Plugin Name: WP Featured Video
+Description: Integrates with the existing featured image-functions, so it works with all themes.<br><br>Plugin URI: http://tormorten.no
+Author: Tor Morten Jensen
+Author URI: http://tormorten.no
+Version: 1.0
+License: GPL2
+Text Domain: wp-featured-video
+Domain Path: languages/<br><a name="classes"></a><h2>Classes</h2>
+<div id="WP_Featured_Video" class="class">
+<h3>WP_Featured_Video</h3>
+<div class="properties">
+<h1>Properties</h1>
+<label class="property-key">Extends</label><div class="property-value">
+         </div>
+<label class="property-key">Implements</label><div class="property-value"> 
+      </div>
+<label class="property-key">author</label><div class="property-value">
+<a title="" href="mailto:tormorten@tormorten.no">Tor Morten Jensen</a>
+             
+        </div>
+<label class="property-key">package</label><div class="property-value">
+<a title="">WordPress</a>
+             
+        </div>
+<label class="property-key">package</label><div class="property-value">
+<a title="">WordPress</a>
+             
+        </div>
+<label class="property-key">Abstract</label><div class="property-value">No 
+      </div>
+<label class="property-key">Final</label><div class="property-value">No 
+      </div>
+</div>
+<h4>Description</h4>
+<em>Featured Video Main class</em><br><br><div id="methods_WP_Featured_Video">
+<h4>Methods</h4>
+<a style="font-style: italic;" href="#WP_Featured_Video::__construct()">__construct</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::add_button()">add_button</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::ajax_render_video_data()">ajax_render_video_data</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::duration()">duration</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::get_image_sizes()">get_image_sizes</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::get_video_data()">get_video_data</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::get_video_data_parsed()">get_video_data_parsed</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::get_video_id()">get_video_id</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::get_video_thumbnail()">get_video_thumbnail</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::get_video_type()">get_video_type</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::get_video_url()">get_video_url</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::has_featured_video()">has_featured_video</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::has_video_check()">has_video_check</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::instance()">instance</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::public_scripts()">public_scripts</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::render_modal()">render_modal</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::render_modal_container()">render_modal_container</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::replace_thumbnail()">replace_thumbnail</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::save()">save</a>,
+      <a style="font-style: italic;" href="#WP_Featured_Video::scripts()">scripts</a>,
+      <div class="method">
+<a id="WP_Featured_Video::__construct()"></a><h3>__construct<span class="nb-faded-text">(
+          boolean
+             
+            $load
+            = true,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Adds the necessary actions and filters for the plugin to do its magic</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$load</td>
+<td style="white-space: normal;">boolean</td>
+<td><p>To load or not to load actions. That is the question.</p></td>
+<td>true</td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::add_button()"></a><h3>add_button<span class="nb-faded-text">(
+          string
+             
+            $html,
+          integer
+             
+            $post_id,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Add a new link to the featured image box.</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>$html</td>
+<td style="white-space: normal;">string</td>
+<td><p>The HTML for the featured image box</p></td>
+<td></td>
+</tr>
+<tr>
+<td>$post_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>The current post ID</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::ajax_render_video_data()"></a><h3>ajax_render_video_data<span class="nb-faded-text">(
+          integer
+             
+            $ajax
+            = true,
+          string
+             
+            $url
+            = null,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Renders video data</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>$ajax</td>
+<td style="white-space: normal;">integer</td>
+<td><p>(optional) If this is an ajax request or not</p></td>
+<td>true</td>
+</tr>
+<tr>
+<td>$url</td>
+<td style="white-space: normal;">string</td>
+<td><p>(optional) The URL to fetch</p></td>
+<td>null</td>
+</tr>
+</tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td>Echoes video data</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::duration()"></a><h3>duration<span class="nb-faded-text">(
+          integer
+             
+            $seconds_count,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">string</span>
+</h3>
+<h4>Description</h4>
+<em>Formats seconds as video duration</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$seconds_count</td>
+<td style="white-space: normal;">integer</td>
+<td><p>The seconds to format</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>string</td>
+<td>Video duration</td>
+</tr></tbody>
+</table>
+<h4>Tags</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>author</td>
+<td>aktagon &lt;http://aktagon.com&gt;</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::get_image_sizes()"></a><h3>get_image_sizes<span class="nb-faded-text">(
+          string
+             
+            $size
+            = '',
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">array</span>
+</h3>
+<h4>Description</h4>
+<em>Gets image sizes</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$size</td>
+<td style="white-space: normal;">string</td>
+<td><p>(optional) A single size</p></td>
+<td>''</td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>array</td>
+<td>An array of sizes or just the one requested size</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::get_video_data()"></a><h3>get_video_data<span class="nb-faded-text">(
+          string
+             
+            $url,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">array</span>
+</h3>
+<h4>Description</h4>
+<em>Gets the data from the video URL</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$url</td>
+<td style="white-space: normal;">string</td>
+<td><p>URL to a YouTube or Vimeo video</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>array</td>
+<td>Array with the data for the requested URL</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::get_video_data_parsed()"></a><h3>get_video_data_parsed<span class="nb-faded-text">(
+          string
+             
+            $url,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">array</span>
+</h3>
+<h4>Description</h4>
+<em>Gets the parsed data from the URL</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$url</td>
+<td style="white-space: normal;">string</td>
+<td><p>URL to a YouTube or Vimeo video</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>array</td>
+<td>Array with the parsed data for the requested URL</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::get_video_id()"></a><h3>get_video_id<span class="nb-faded-text">(
+          integer
+             
+            $post_id,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">string</span>
+</h3>
+<h4>Description</h4>
+<em>Gets the ID for a video</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$post_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>The post ID</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>string</td>
+<td>Video ID</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::get_video_thumbnail()"></a><h3>get_video_thumbnail<span class="nb-faded-text">(
+          integer
+             
+            $post_id,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">string</span>
+</h3>
+<h4>Description</h4>
+<em>Gets the thumbnail for a video</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$post_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>The post ID</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>string</td>
+<td>Video thumbnail source</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::get_video_type()"></a><h3>get_video_type<span class="nb-faded-text">(
+          integer
+             
+            $post_id,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">string</span>
+</h3>
+<h4>Description</h4>
+<em>Gets the type for a video</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$post_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>The post ID</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>string</td>
+<td>Video tyoe</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::get_video_url()"></a><h3>get_video_url<span class="nb-faded-text">(
+          integer
+             
+            $post_id,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">string</span>
+</h3>
+<h4>Description</h4>
+<em>Gets the URL for a video</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$post_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>The post ID</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>string</td>
+<td>Video URL</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::has_featured_video()"></a><h3>has_featured_video<span class="nb-faded-text">(
+          integer
+             
+            $post_id,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">boolean</span>
+</h3>
+<h4>Description</h4>
+<em>Checks if a post has featured video.</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$post_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>The current post ID</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>boolean</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::has_video_check()"></a><h3>has_video_check<span class="nb-faded-text">(
+          null|array|string
+             
+            $value,
+          integer
+             
+            $object_id,
+          string
+             
+            $meta_key,
+          string|array
+             
+            $single,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">n/a</span>
+</h3>
+<h4>Description</h4>
+<em>Checks if a post has video</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>$value</td>
+<td style="white-space: normal;">null|array|string</td>
+<td><p>The value get_metadata() should</p>
+<pre><code>                                return - a single metadata value,
+                                or an array of values.</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td>$object_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>Object ID.</p></td>
+<td></td>
+</tr>
+<tr>
+<td>$meta_key</td>
+<td style="white-space: normal;">string</td>
+<td><p>Meta key.</p></td>
+<td></td>
+</tr>
+<tr>
+<td>$single</td>
+<td style="white-space: normal;">string|array</td>
+<td><p>Meta value, or an array of values.</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>n/a</td>
+<td>n/a</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::instance()"></a><h3>instance<span class="nb-faded-text">(
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">object</span>
+</h3>
+<h4>Description</h4>
+<em>Creates a new instance of the plugin</em><br><h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>object</td>
+<td>An instance of our plugin</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::public_scripts()"></a><h3>public_scripts<span class="nb-faded-text">(
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Registers and enqueus scripts needed for the featured video feature to work</em><br><h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::render_modal()"></a><h3>render_modal<span class="nb-faded-text">(
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Render a modal for inserting videos</em><br><h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::render_modal_container()"></a><h3>render_modal_container<span class="nb-faded-text">(
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Render a modal container for inserting videos</em><br><h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::replace_thumbnail()"></a><h3>replace_thumbnail<span class="nb-faded-text">(
+          string
+             
+            $html,
+          string
+             
+            $post_id,
+          string
+             
+            $post_thumbnail_id,
+          string
+             
+            $size,
+          string
+             
+            $attr,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">string</span>
+</h3>
+<h4>Description</h4>
+<em>Replaces the post thumbnail with the video thumbnail</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>$html</td>
+<td style="white-space: normal;">string</td>
+<td><p>The post thumbnail HTML.</p></td>
+<td></td>
+</tr>
+<tr>
+<td>$post_id</td>
+<td style="white-space: normal;">string</td>
+<td><p>The post ID.</p></td>
+<td></td>
+</tr>
+<tr>
+<td>$post_thumbnail_id</td>
+<td style="white-space: normal;">string</td>
+<td><p>The post thumbnail ID.</p></td>
+<td></td>
+</tr>
+<tr>
+<td>$size</td>
+<td style="white-space: normal;">string</td>
+<td><p>The post thumbnail size.</p></td>
+<td></td>
+</tr>
+<tr>
+<td>$attr</td>
+<td style="white-space: normal;">string</td>
+<td><p>Query string of attributes.</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>string</td>
+<td>The new featured image</td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::save()"></a><h3>save<span class="nb-faded-text">(
+          integer
+             
+            $post_id,
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Saves the data</em><br><h4>Arguments</h4>
+<table>
+<thead><tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr>
+<td>$post_id</td>
+<td style="white-space: normal;">integer</td>
+<td><p>ID of the saved post</p></td>
+<td></td>
+</tr></tbody>
+</table>
+<h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+<div class="method">
+<a id="WP_Featured_Video::scripts()"></a><h3>scripts<span class="nb-faded-text">(
+          
+          )
+        </span>
+        :
+        <span class="nb-faded-text">void</span>
+</h3>
+<h4>Description</h4>
+<em>Registers and enqueus scripts needed for the featured video feature to work</em><br><h4>Return value</h4>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>void</td>
+<td></td>
+</tr></tbody>
+</table>
+</div>
+</div>
+<div style="clear: both"></div>
+</div>
+</div>
+<small xmlns="" class="footer">Documentation was generated by <a href="http://www.phpdoc.org">phpDocumentor 2.7.0</a>.</small></div><div id="index"><div class="padder"><input id="search_box"></input><div class="section">
+<h1>Namespaces</h1>
+<ul id="namespaces-" class="filetree"><li class="closed">
+<span class="folder">global</span><ul></ul>
+</li></ul>
+</div><div class="section">
+<h1>Packages</h1>
+<ul id="packages-" class="filetree">
+<li class="closed">
+<span class="folder">Search</span><ul id="packages_Search" class="filetree"></ul>
+</li>
+<li class="closed">
+<span class="folder">WordPress</span><ul id="packages_WordPress" class="filetree"><li class="closed"><span class="class"><a href="wp-featured-video.html#WP_Featured_Video">WP_Featured_Video</a></span></li></ul>
+</li>
+</ul>
+</div>
+</div></div><div id="footer"><div class="padder"></div></div></div></body></html>

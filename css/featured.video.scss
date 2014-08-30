@@ -1,0 +1,64 @@
+@mixin clearfix {
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+.featured-video-modal {
+
+	.video-data {
+		* {
+			box-sizing: content-box;
+		}
+		.video-data-item {
+			margin-top: 20px;
+			background: darken(#fff, 5%);
+			padding: 20px;
+			@include clearfix;
+			.video-thumbnail {
+				width: 35%;
+				float: left;
+				img {
+					max-width: 100%;
+					height: auto;
+				}
+			}
+			.video-information {
+				width: 60%;
+				float: right;
+				button {
+					float: right;
+				}
+				h3 {
+					margin: 0 0 10px;
+					padding: 0;
+					font-size: 24px;
+				}
+				h4 {
+					margin: 0 0 18px;
+					padding: 0;
+					font-size: 18px;
+				}
+				.video-type {
+					color: darken(#fff, 20%);
+					font-size: 18px;
+					font-weight: bold;
+					text-transform: uppercase;
+				}
+			}
+
+		}
+
+	}
+
+}
+
+.featured-video-metabox-container {
+
+	.featured_video {
+		cursor: pointer;
+	}
+
+}

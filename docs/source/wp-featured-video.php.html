@@ -1,0 +1,810 @@
+<html>
+    <head>
+        <script
+            type="text/javascript"
+            src="../js/jquery-1.4.2.min.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shCore.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shBrushJScript.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shBrushPhp.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shBrushXml.js">
+        </script>
+        <link
+            href="../syntax_highlighter/styles/shCore.css" rel="stylesheet"
+            type="text/css"
+        />
+        <link
+            href="../syntax_highlighter/styles/shCoreEclipse.css"
+            rel="stylesheet" type="text/css"
+        />
+        <link
+            href="../syntax_highlighter/styles/shThemeWordpress.css"
+            rel="stylesheet" type="text/css"
+        />
+    </head>
+    <body>
+        <pre class="brush: php">&lt;?php  
+/**
+ * WP Featured Video WordPress Plugin
+ * 
+ * @package WordPress
+ **/
+
+/*
+ * Plugin Name: WP Featured Video
+ * Description: Integrates with the existing featured image-functions, so it works with all themes.
+ * Plugin URI: http://tormorten.no
+ * Author: Tor Morten Jensen
+ * Author URI: http://tormorten.no
+ * Version: 1.0
+ * License: GPL2
+ * Text Domain: wp-featured-video
+ * Domain Path: languages/
+ * 
+ */
+
+/*
+
+    Copyright (C) 2014  Tor Morten Jensen  tormorten@tormorten.no
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, version 2, as
+    published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+if( !defined( 'ABSPATH' ) )
+	die( 'Hold on there cowboy! You can not load this directly. Load it in to WordPress and see what happens!' );
+
+if( !class_exists( 'WP_Featured_Video' ) ) {
+
+	/**
+	 * Featured Video Main class
+	 *
+	 * @author Tor Morten Jensen &lt;tormorten@tormorten.no&gt;
+	 **/
+	class WP_Featured_Video {
+
+		/**
+		 * Adds the necessary actions and filters for the plugin to do its magic
+		 *
+		 * @param bool $load To load or not to load actions. That is the question.
+		 * @return void
+		 **/
+		public function __construct( $load = true ) {
+
+			if( $load ) {
+
+				if( !is_admin() ) {
+
+					// replace the exisiting thumbnail
+					add_filter( 'post_thumbnail_html', array( $this, 'replace_thumbnail' ), 99, 5 );
+
+					// add scripts
+					add_action( 'wp_enqueue_scripts', array( $this, 'public_scripts' ) );
+
+					// check if a thumbnail has been set
+					add_filter( 'get_post_metadata', array( $this, 'has_video_check' ), 99, 4 );
+
+				}
+
+				// these hooks only apply to the admin
+				if( is_admin() ) {
+
+					// add the link to featured image meta box
+					add_filter( 'admin_post_thumbnail_html', array( $this, 'add_button' ), 99, 2 );
+
+					// create a modal
+					add_action( 'admin_footer', array( $this, 'render_modal_container' ) );
+
+					// add scripts
+					add_action( 'admin_enqueue_scripts', array( $this, 'scripts' ) );
+
+					// do ajax to get video information
+					add_action( 'wp_ajax_featured_video_get_data', array( $this, 'ajax_render_video_data' ) );
+					add_action( 'wp_ajax_featured_video_modal', array( $this, 'render_modal' ) );
+
+					// save the video url
+					add_action( 'save_post', array( $this, 'save' ) );
+
+				}
+			}
+
+		}
+
+		/**
+		 * Registers and enqueus scripts needed for the featured video feature to work
+		 *
+		 * @return void
+		 **/
+		public function public_scripts() {
+
+			wp_enqueue_script( 'jquery' );
+
+			wp_enqueue_script( 'wp-featured-video-js', plugins_url( 'js/featured.video.public.js', __FILE__ ), array( 'jquery' ), '1.0' );
+			
+			wp_enqueue_style( 'wp-featured-video-css', plugins_url( 'css/featured.video.public.css', __FILE__ ), array(), '1.0' );
+
+		}
+
+		/**
+		 * Checks if a post has video
+		 *
+		 * @param null|array|string $value     The value get_metadata() should
+	 	 *                                     return - a single metadata value,
+		 *                                     or an array of values.
+		 * @param int               $object_id Object ID.
+		 * @param string            $meta_key  Meta key.
+		 * @param string|array      $single    Meta value, or an array of values.
+		 **/
+		public function has_video_check( $value, $object_id, $meta_key, $single ) {
+
+			if( $meta_key == '_thumbnail_id' ) {
+
+				$only_single = apply_filters( 'wp_featured_video_singular_only', true );
+
+				if( $only_single ) {
+
+					if( !is_singular() )
+						return $value;
+
+				}
+
+				if( $this-&gt;has_featured_video( $object_id ) ) 
+					$value = true;
+
+			}
+
+			return $value;
+
+		}
+
+		/**
+		 * Replaces the post thumbnail with the video thumbnail
+		 *
+		 * @param string $html              The post thumbnail HTML.
+		 * @param string $post_id           The post ID.
+		 * @param string $post_thumbnail_id The post thumbnail ID.
+		 * @param string $size              The post thumbnail size.
+		 * @param string $attr              Query string of attributes.
+		 * @return string The new featured image
+		 **/
+		public function replace_thumbnail($html, $post_id, $post_thumbnail_id, $size, $attr) {
+
+			$only_single = apply_filters( 'wp_featured_video_singular_only', true );
+
+			if( $only_single ) {
+
+				if( !is_singular() )
+					return $html;
+
+			}
+
+			if( $this-&gt;has_featured_video( $post_id ) ) {
+
+				if( $size == 'post-thumbnail' )
+					$size = 'thumbnail';
+
+				$size_array = $this-&gt;get_image_sizes( $size );
+
+				$width = $size_array['width'];
+				$height = $size_array['height'];
+				$crop = $size_array['crop'];
+
+				$height = round( ( $width / 16 ) * 9 ); // always keeps the video at a 16:9 aspect ratio, no matter what
+
+				$ratio = $width / $height;
+
+				$video = $this-&gt;get_video_id( $post_id );
+				$video_type = $this-&gt;get_video_type( $post_id );
+
+				$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $post_thumbnail_id );
+
+				if( !isset( $attr['class'] ) )
+					$attr['class'] = '';
+
+				$attr['class'] .= ' featured-video featured-video-type-'. $video_type .' featured-video-'. ( $crop ? 'crop' : 'normal' );
+				
+				$attr['id'] = 'featured-video-'. $post_id;
+				
+				$attr['style'] = 'width:'.$width.'px;';
+				
+				$attrs = '';
+				foreach ( $attr as $name =&gt; $value ) {
+					$attrs .= &quot; $name=&quot; . '&quot;' . $value . '&quot;';
+				}
+
+				$html = '&lt;div' . $attrs .'&gt;';
+
+				if( $video_type == 'youtube' ) {
+
+					$youtube_query = apply_filters( 'wp_featured_video_youtube_query', array(
+						'autoplay' =&gt; 0,
+						'origin' =&gt; get_permalink( $post_id ),
+						'controls' =&gt; 2,
+						'showinfo' =&gt; 0
+					) );
+
+					$youtube_query = http_build_query( $youtube_query );
+
+					$html .= '&lt;iframe class=&quot;featured-video-iframe&quot; type=&quot;text/html&quot; width=&quot;'.$width.'&quot; height=&quot;'.$height.'&quot;';
+  					$html .= 'src=&quot;http://www.youtube.com/embed/'.$video.'?'.$youtube_query.'&quot;';
+  					$html .= 'frameborder=&quot;0&quot; webkitallowfullscreen mozallowfullscreen allowfullscreen&gt;&lt;/iframe&gt;';
+
+				}
+				elseif( $video_type == 'vimeo' ) {
+
+					$vimeo_query = apply_filters( 'wp_featured_video_vimeo_query', array(
+						'autoplay' =&gt; 0,
+						'byline' =&gt; 0,
+						'portrait' =&gt; 0,
+						'title' =&gt; 0,
+						'badge' =&gt; 0
+					) );
+
+					$vimeo_query = http_build_query( $vimeo_query );
+
+					$html .= '&lt;iframe class=&quot;featured-video-iframe&quot; width=&quot;'.$width.'&quot; height=&quot;'.$height.'&quot;';
+					$html .= 'src=&quot;//player.vimeo.com/video/'.$video.'?'.$vimeo_query.'&quot;';
+					$html .= 'frameborder=&quot;0&quot; webkitallowfullscreen mozallowfullscreen allowfullscreen&gt;&lt;/iframe&gt;';
+
+				}
+
+				$html .= '&lt;/div&gt;';
+
+			}
+
+			return $html;
+
+		}
+
+		/**
+		 * Gets image sizes
+		 *
+		 * @param string $size (optional) A single size
+		 * @return array An array of sizes or just the one requested size
+		 **/
+		private function get_image_sizes( $size = '' ) {
+
+	        global $_wp_additional_image_sizes;
+
+	        $sizes = array();
+	        $get_intermediate_image_sizes = get_intermediate_image_sizes();
+
+	        // Create the full array with sizes and crop info
+	        foreach( $get_intermediate_image_sizes as $_size ) {
+
+	                if ( in_array( $_size, array( 'thumbnail', 'medium', 'large' ) ) ) {
+
+	                        $sizes[ $_size ]['width'] = get_option( $_size . '_size_w' );
+	                        $sizes[ $_size ]['height'] = get_option( $_size . '_size_h' );
+	                        $sizes[ $_size ]['crop'] = (bool) get_option( $_size . '_crop' );
+
+	                } elseif ( isset( $_wp_additional_image_sizes[ $_size ] ) ) {
+
+	                        $sizes[ $_size ] = array( 
+	                                'width' =&gt; $_wp_additional_image_sizes[ $_size ]['width'],
+	                                'height' =&gt; $_wp_additional_image_sizes[ $_size ]['height'],
+	                                'crop' =&gt;  $_wp_additional_image_sizes[ $_size ]['crop']
+	                        );
+
+	                }
+
+	        }
+
+	        // Get only 1 size if found
+	        if ( $size ) {
+
+	                if( isset( $sizes[ $size ] ) ) {
+	                        return $sizes[ $size ];
+	                } else {
+	                        return false;
+	                }
+
+	        }
+
+	        return $sizes;
+		}
+
+		/**
+		 * Saves the data
+		 *
+		 * @param int $post_id ID of the saved post
+		 * @return void
+		 **/
+		public function save($post_id) {
+
+			if( $_POST ) {
+
+				if( isset( $_POST['featured_video_meta'] ) &amp;&amp; wp_verify_nonce( $_POST['featured_video_meta'], 'save_featured_video' ) ) {
+
+					if( isset( $_POST['_featured_video_url'] ) )
+						update_post_meta( $post_id, '_featured_video_url', $_POST['_featured_video_url'] );
+
+				}
+
+			}
+
+		}
+
+		/**
+		 * Registers and enqueus scripts needed for the featured video feature to work
+		 *
+		 * @return void
+		 **/
+		public function scripts() {
+
+			if( get_current_screen()-&gt;base !== 'post' )
+				return;
+
+			wp_enqueue_script( 'jquery' );
+
+			wp_enqueue_script( 'wp-featured-video-js', plugins_url( 'js/featured.video.js', __FILE__ ), array( 'jquery' ), '1.0' );
+			wp_localize_script( 'wp-featured-video-js', 'Featured_Video', array( 'SetVideo' =&gt; __( 'Set featured video', 'featured-video' ), 'RemoveVideo' =&gt; __( 'Remove featured video', 'featured-video' ) ) );
+
+			wp_enqueue_style( 'wp-featured-video-css', plugins_url( 'css/featured.video.css', __FILE__ ), array(), '1.0' );
+
+		}
+
+		/**
+		 * Creates a new instance of the plugin
+		 *
+		 * @return object An instance of our plugin
+		 **/
+		public function instance() {
+
+			return new self();
+
+		}
+
+		/**
+		 * Add a new link to the featured image box.
+		 *
+		 * @param string $html The HTML for the featured image box
+		 * @param int $post_id The current post ID
+		 * @return void
+		 **/
+		public function add_button($html, $post_id) {
+
+			$html .= '&lt;hr&gt;';
+
+			$html .= '&lt;div class=&quot;featured-video-metabox-container&quot;&gt;';
+
+			$html .= '&lt;div class=&quot;featured_video&quot; id=&quot;featured_video&quot;&gt;';
+			if( $this-&gt;has_featured_video( $post_id ) ) {
+
+				$html .= '&lt;img src=&quot;'. $this-&gt;get_video_thumbnail( $post_id ) .'&quot;&gt;';
+
+			}
+			$html .= '&lt;/div&gt;';
+
+			$html .= '&lt;div id=&quot;thumbnail-change-toggle&quot;&gt;';
+
+			if( ! $this-&gt;has_featured_video( $post_id ) )
+				$html .= '&lt;p class=&quot;hide-if-no-js&quot;&gt;&lt;a href=&quot;#&quot; id=&quot;set-featured-video&quot;&gt;'. __( 'Set featured video', 'featured-video' ) .'&lt;/a&gt;&lt;/p&gt;';
+			else
+				$html .= '&lt;p class=&quot;hide-if-no-js&quot;&gt;&lt;a href=&quot;#&quot; id=&quot;remove-featured-video&quot;&gt;'. __( 'Remove featured video', 'featured-video' ) .'&lt;/a&gt;&lt;/p&gt;';
+
+			$html .= '&lt;/div&gt;';
+
+			$html .= '&lt;input type=&quot;hidden&quot; value=&quot;'. $this-&gt;get_video_url( $post_id ) .'&quot; name=&quot;_featured_video_url&quot; id=&quot;_featured_video_url&quot;&gt;';
+
+			$html .= '&lt;/div&gt;';
+
+			$html .= wp_nonce_field( 'save_featured_video', 'featured_video_meta', null, false );
+
+			return $html;
+
+		}
+
+		/**
+		 * Gets the URL for a video
+		 *
+		 * @param integer $post_id The post ID
+		 * @return string Video URL
+		 **/
+		private function get_video_url($post_id) {
+
+			$video = get_post_meta( $post_id, '_featured_video_url', true );
+
+			return $video;
+
+		}
+
+		/**
+		 * Gets the ID for a video
+		 *
+		 * @param integer $post_id The post ID
+		 * @return string Video ID
+		 **/
+		private function get_video_id($post_id) {
+
+			$video = $this-&gt;get_video_url($post_id);
+
+			if( empty($video) || !$video ) {
+				return false;
+			}
+
+			$data = $this-&gt;get_video_data_parsed($video);
+
+			return $data['id'];
+		}
+
+		/**
+		 * Gets the type for a video
+		 *
+		 * @param integer $post_id The post ID
+		 * @return string Video tyoe
+		 **/
+		private function get_video_type($post_id) {
+
+			$video = $this-&gt;get_video_url($post_id);
+
+			if( empty($video) || !$video ) {
+				return false;
+			}
+
+			$data = $this-&gt;get_video_data_parsed($video);
+
+			return $data['type'];
+		}
+
+		/**
+		 * Gets the thumbnail for a video
+		 *
+		 * @param integer $post_id The post ID
+		 * @return string Video thumbnail source
+		 **/
+		private function get_video_thumbnail($post_id) {
+
+			$video = $this-&gt;get_video_url($post_id);
+
+			if( empty($video) || !$video ) {
+				return false;
+			}
+
+			$data = $this-&gt;get_video_data_parsed($video);
+
+			return $data['thumbnail'];
+
+		}
+
+		/**
+		 * Checks if a post has featured video.
+		 *
+		 * @param int $post_id The current post ID
+		 * @return boolean
+		 **/
+		private function has_featured_video($post_id) {
+
+			$video = get_post_meta( $post_id, '_featured_video_url', true );
+
+			if( empty($video) || !$video ) {
+				return false;
+			}
+
+			return true;
+
+		}
+
+		/**
+		 * Gets the parsed data from the URL
+		 *
+		 * @param string $url URL to a YouTube or Vimeo video
+		 * @return array Array with the parsed data for the requested URL
+		 **/
+
+		private function get_video_data_parsed( $url ) {
+
+			$data = get_transient( 'wp_featured_video_data_'. sanitize_title( $url ) );
+			$data = false;
+			if( $data === false ) {
+
+				$video_data = $this-&gt;get_video_data( $url );
+
+				if( $video_data ) {
+
+					$data = $video_data['data'];
+
+					if( $video_data['type'] == 'youtube' ) {
+
+						$title = array_pop($data['title']); // the title
+						$duration = array_pop($data['media$group']['media$content']); // the duration of the video
+						$duration = $duration['duration']; // the duration in seconds
+						$thumbnails = $data['media$group']['media$thumbnail'];
+
+						foreach($thumbnails as $thumbnail) {
+							if( $thumbnail['yt$name'] == 'mqdefault' ) {
+								$thumb = $thumbnail['url'];
+							}
+						}
+					}
+					elseif( $video_data['type'] == 'vimeo' ) {
+
+						$title = $data['title'];
+						$duration = $data['duration'];
+						$thumb = $data['thumbnail_large'];
+
+					}
+
+					$data = array( 
+						'id' =&gt; $video_data['id'], 
+						'title' =&gt; $title, 
+						'duration' =&gt; $duration, 
+						'thumbnail' =&gt; $thumb,
+						'type' =&gt; $video_data['type']
+					);
+
+					set_transient( 'wp_featured_video_data_'. sanitize_title( $url ), $data );
+
+				}
+			}
+
+			return $data;
+
+		}
+
+		/**
+		 * Gets the data from the video URL
+		 *
+		 * @param string $url URL to a YouTube or Vimeo video
+		 * @return array Array with the data for the requested URL
+		 **/
+		private function get_video_data( $url ) {
+
+			$youtube = 'https://gdata.youtube.com/feeds/api/videos/%s?v=2&amp;alt=json';
+			$vimeo = 'http://vimeo.com/api/v2/video/%s.json';
+
+			if( strpos( $url, 'youtube.com' ) !== false || stripos( $url, 'youtu.be' ) !== false ) 
+				$service = 'youtube';
+
+			elseif( strpos( $url, 'vimeo.com' ) !== false ) 
+				$service = 'vimeo';
+
+			else
+				return false;
+
+			if( $service == 'youtube' ) {
+
+				parse_str( parse_url( $url, PHP_URL_QUERY ), $query );
+
+				if( !isset( $query['v'] ) )
+					return false;
+
+				$data_url = sprintf( $youtube, $query['v'] );
+
+				$data = @json_decode( @file_get_contents( $data_url ), true );
+
+				if( !isset($data['entry']) )
+					return false;
+
+				$return = array( 'data' =&gt; $data['entry'], 'id' =&gt; $query['v'], 'type' =&gt; 'youtube' );
+
+			}
+
+			if( $service == 'vimeo' ) {
+
+				$id = substr( parse_url( $url, PHP_URL_PATH ), 1 );
+				if( ! is_numeric( $id ) ) 
+					return false;
+
+				$data_url = sprintf( $vimeo, $id );
+
+				$data = @json_decode( @file_get_contents( $data_url ), true );
+
+				$return = array( 'data' =&gt; $data[0], 'id' =&gt; $id, 'type' =&gt; 'vimeo' );
+
+			}
+
+			return $return;
+
+		}
+
+		/**
+		 * Render a modal container for inserting videos
+		 *
+		 * @return void
+		 **/
+		public function render_modal_container() {
+
+			echo '&lt;div id=&quot;featured-video-modal-container&quot;&gt;&lt;/div&gt;';
+
+		}
+
+		/**
+		 * Render a modal for inserting videos
+		 *
+		 * @return void
+		 **/
+		public function render_modal() {
+
+			?&gt;
+			
+			&lt;div tabindex=&quot;0&quot; id=&quot;_featured_video_modal&quot; class=&quot;featured-video-modal&quot; style=&quot;position: relative; display:none;&quot;&gt;
+				&lt;div class=&quot;media-modal wp-core-ui&quot;&gt;
+					&lt;a class=&quot;media-modal-close&quot; href=&quot;#&quot; title=&quot;&lt;?php _e( 'Close' ); ?&gt;&quot;&gt;&lt;span class=&quot;media-modal-icon&quot;&gt;&lt;/span&gt;&lt;/a&gt;
+					&lt;div class=&quot;media-modal-content&quot;&gt;
+						&lt;div class=&quot;media-frame wp-core-ui hide-menu&quot; id=&quot;_featured_video_modal_0&quot;&gt;
+							&lt;div class=&quot;media-frame-menu&quot;&gt;
+								&lt;div class=&quot;media-menu&quot;&gt;
+									&lt;a href=&quot;#&quot; class=&quot;media-menu-item active&quot;&gt;&lt;?php _e( 'Set Featured Video', 'featured-video' ); ?&gt;&lt;/a&gt;
+								&lt;/div&gt;
+							&lt;/div&gt;
+							&lt;div class=&quot;media-frame-title&quot;&gt;
+								&lt;h1&gt;&lt;?php _e( 'Set Featured Video', 'featured-video' ); ?&gt;&lt;/h1&gt;
+							&lt;/div&gt;
+							&lt;div class=&quot;media-frame-content&quot;&gt;
+
+								&lt;div class=&quot;attachments-browser&quot;&gt;
+									
+									&lt;div class=&quot;attachments&quot; style=&quot;top: 0; left: 16px;&quot; id=&quot;insert-video-url&quot;&gt;
+										
+										&lt;h2&gt;&lt;?php _e( 'Insert URL to a video', 'featured-video' ); ?&gt;&lt;/h2&gt;	
+
+										&lt;input type=&quot;text&quot; size=&quot;40&quot; id=&quot;_featured_video&quot;&gt;
+
+										&lt;button id=&quot;_get_video_data&quot; class=&quot;button-primary&quot;&gt;&lt;?php _e( 'Get Video Information', 'featured-video' ); ?&gt;&lt;/button&gt;
+										
+										&lt;div class=&quot;video-data&quot;&gt;
+											&lt;?php 
+
+											global $post;
+
+											if( isset($post-&gt;ID) ) {
+
+												if( $this-&gt;has_featured_video( $post-&gt;ID ) ) :
+
+													$video = $this-&gt;get_video_url( $post-&gt;ID );
+
+													$this-&gt;ajax_render_video_data( false, $video );
+
+												endif;
+											}
+
+											?&gt;
+										&lt;/div&gt;
+									&lt;/div&gt;
+									
+									&lt;div class=&quot;media-sidebar&quot;&gt;
+										&lt;p&gt;
+											&lt;?php _e( 'You can type any Vimeo or YouTube URL to get the metadata for the video and insert as a featured video.', 'featured-video' ); ?&gt;
+										&lt;/p&gt;
+									&lt;/div&gt;
+
+								&lt;/div&gt;
+
+							&lt;/div&gt;
+				
+						&lt;/div&gt;
+					&lt;/div&gt;
+				&lt;/div&gt;
+				&lt;div class=&quot;media-modal-backdrop&quot;&gt;&lt;/div&gt;
+			&lt;/div&gt;
+
+			&lt;?php
+
+			die;
+
+		}
+
+		/**
+		 * Renders video data 
+		 *
+		 * @param int $ajax (optional) If this is an ajax request or not
+		 * @param string $url (optional) The URL to fetch
+		 * @return void Echoes video data
+		 **/
+		public function ajax_render_video_data( $ajax = true, $url = null ) {
+
+			if( $ajax || $ajax == '' )
+				$url = $_POST['url'];
+
+			$data = $this-&gt;get_video_data_parsed( $url );
+
+			if( $data ) {
+
+				$title = $data['title']; // the title
+				$duration = $data['duration']; // the duration in seconds
+				$thumb = $data['thumbnail'];
+
+				?&gt;
+				&lt;div class=&quot;video-data-item&quot; data-video=&quot;&lt;?php echo $url; ?&gt;&quot; data-thumb=&quot;&lt;?php echo $thumb; ?&gt;&quot;&gt;
+
+					&lt;div class=&quot;video-thumbnail&quot;&gt;
+						&lt;img src=&quot;&lt;?php echo $thumb; ?&gt;&quot; alt=&quot;&quot;&gt;
+					&lt;/div&gt;
+
+					&lt;div class=&quot;video-information&quot;&gt;
+
+						&lt;h3&gt;&lt;?php echo $title; ?&gt;&lt;/h3&gt;
+						&lt;h4&gt;&lt;?php echo $this-&gt;duration($duration); ?&gt;&lt;/h4&gt;
+						&lt;div class=&quot;video-type&quot;&gt;&lt;?php echo $data['type']; ?&gt;&lt;/div&gt;
+
+						&lt;button class=&quot;button-primary&quot; id=&quot;insert-video&quot;&gt;&lt;?php _e( 'Set this video as featured video', 'featured-video' ); ?&gt;&lt;/button&gt;
+					
+					&lt;/div&gt;
+				&lt;/div&gt;
+				&lt;?php
+
+			}
+			else {
+
+				_e( 'This is not a valid video URL. Please try another URL.', 'featured-video' );
+
+			}
+
+			if( $ajax || $ajax == '' )
+				die();
+
+		}
+
+		/**
+		 * Formats seconds as video duration
+		 *
+		 * @param int $seconds_count The seconds to format
+		 * @return string Video duration
+		 * @author aktagon &lt;http://aktagon.com&gt;
+		 **/
+		private function duration($seconds_count) {
+			$delimiter  = ':';
+			$seconds = $seconds_count % 60;
+			$minutes = floor($seconds_count/60);
+			$hours   = floor($seconds_count/3600);
+
+			$seconds = str_pad($seconds, 2, &quot;0&quot;, STR_PAD_LEFT);
+			$minutes = str_pad($minutes, 2, &quot;0&quot;, STR_PAD_LEFT).$delimiter;
+
+			if($hours &gt; 0)
+			{
+				$hours = str_pad($hours, 2, &quot;0&quot;, STR_PAD_LEFT).$delimiter;
+			}
+			else
+			{
+				$hours = '';
+			}
+
+			return &quot;$hours$minutes$seconds&quot;;
+		}
+
+	}
+
+	/**
+	 * Includes the template tags
+	 **/
+	require_once plugin_dir_path( __FILE__ ) . '/lib/template.php';
+
+	/**
+	 * Load the plugin into action. Since it really never gets called from anywhere else, this is the only place we'll need it.
+	 **/
+	add_action( 'plugins_loaded', array( 'WP_Featured_Video', 'instance' ) );
+
+}
+
+?&gt;</pre>
+        <script type="text/javascript">
+             SyntaxHighlighter.all();
+             jQuery('.gutter div').each(function(key, data){
+                jQuery(data).prepend('<a name="L'+jQuery(data).text()+'"/>');
+             });
+        </script>
+    </body>
+</html>
